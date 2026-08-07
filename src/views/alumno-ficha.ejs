@@ -1,0 +1,103 @@
+<% var title = (alumno ? 'Editar alumno' : 'Nuevo alumno') + ' · INCOM Documentos'; %>
+<%- include('partials/header', { title, adminEmail }) %>
+
+<% var grupos = {}; CAMPOS.forEach(c => { (grupos[c.grupo] = grupos[c.grupo] || []).push(c); }); %>
+
+<div class="card">
+  <h1><%= alumno ? 'Editar alumno' : 'Nuevo alumno' %></h1>
+  <% if (guardado) { %><p class="ok">Datos guardados.</p><% } %>
+
+  <form method="post" action="<%= alumno ? ('/alumnos/' + alumno.id) : '/alumnos/nuevo' %>">
+    <% Object.keys(grupos).forEach(nombreGrupo => { %>
+      <h2><%= nombreGrupo %></h2>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0 16px">
+        <% grupos[nombreGrupo].forEach(c => { %>
+          <div>
+            <label><%= c.etiqueta %></label>
+            <input type="text" name="<%= c.clave %>" value="<%= alumno ? (alumno[c.clave] || '') : '' %>">
+          </div>
+        <% }) %>
+      </div>
+    <% }) %>
+
+    <h2>Documentos entregados</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 6px">
+      <% CAMPOS_BOOLEANOS.forEach(b => { %>
+        <label style="display:flex; align-items:center; gap:8px; font-size:.9rem; color:#1c2733">
+          <input type="checkbox" name="<%= b.clave %>" style="width:auto" <%= alumno && alumno[b.clave] ? 'checked' : '' %>>
+          <%= b.etiqueta %>
+        </label>
+      <% }) %>
+    </div>
+
+    <h2>Dependientes económicos (solo para Solicitud de Beca)</h2>
+    <% var deps = alumno && alumno.dependientes ? alumno.dependientes : []; %>
+    <% for (var i = 1; i <= 4; i++) { var d = deps[i-1] || {}; %>
+      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 16px">
+        <div><label>Dependiente <%= i %>: Nombre</label><input type="text" name="dependiente<%= i %>_nombre" value="<%= d.nombre || '' %>"></div>
+        <div><label>Edad</label><input type="text" name="dependiente<%= i %>_edad" value="<%= d.edad || '' %>"></div>
+        <div><label>Escolaridad</label><input type="text" name="dependiente<%= i %>_escolaridad" value="<%= d.escolaridad || '' %>"></div>
+      </div>
+    <% } %>
+
+    <p style="margin-top:20px"><button class="btn" type="submit">Guardar</button></p>
+  </form>
+</div>
+
+<% if (alumno) { %>
+<div class="card">
+  <h2>Generar documentos</h2>
+  <% if (avisoOmitidos) { %><p class="aviso"><%= avisoOmitidos %> documento(s) ya estaban firmados y no se regeneraron.</p><% } %>
+  <p>Selecciona los formatos que quieres llenar automáticamente con los datos de este alumno.</p>
+  <form method="post" action="/documentos/generar">
+    <input type="hidden" name="alumno_id" value="<%= alumno.id %>">
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 6px">
+      <% plantillas.forEach(p => { %>
+        <label style="display:flex; align-items:center; gap:8px; font-size:.9rem">
+          <input type="checkbox" name="plantilla_ids" value="<%= p.id %>" style="width:auto">
+          <%= p.nombre %>
+        </label>
+      <% }) %>
+    </div>
+    <p style="margin-top:16px"><button class="btn" type="submit">Generar / regenerar seleccionados</button></p>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Documentos de este alumno</h2>
+  <% if (avisoEnviado) { %><p class="ok">Documento(s) enviados por correo al alumno.</p><% } %>
+  <% if (avisoSinCorreo) { %><p class="error">El alumno no tiene correo registrado. Agrégalo arriba y guarda antes de enviar.</p><% } %>
+  <% if (documentos.length === 0) { %>
+    <p>Todavía no se ha generado ningún documento.</p>
+  <% } else { %>
+  <form method="post" action="/documentos/enviar">
+    <input type="hidden" name="alumno_id" value="<%= alumno.id %>">
+    <table>
+      <thead><tr><th></th><th>Documento</th><th>Estatus</th><th>Acciones</th></tr></thead>
+      <tbody>
+        <% documentos.forEach(d => { %>
+          <tr>
+            <td>
+              <% if (d.estatus === 'borrador') { %>
+                <input type="checkbox" name="documento_ids" value="<%= d.id %>" style="width:auto">
+              <% } %>
+            </td>
+            <td><%= d.plantilla_nombre %></td>
+            <td><span class="badge <%= d.estatus %>"><%= d.estatus %></span></td>
+            <td>
+              <a href="/documentos/<%= d.id %>/pdf?version=<%= d.estatus === 'firmado' ? 'firmado' : 'generado' %>" target="_blank">Ver PDF</a>
+              <% if (d.estatus === 'enviado') { %> · <span class="aviso">enlace enviado, pendiente de firma</span><% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <label style="margin-top:16px">Confirmar correo del alumno para el envío</label>
+    <input type="text" value="<%= alumno.email %>" disabled style="max-width:320px">
+    <p style="margin-top:12px"><button class="btn" type="submit">Enviar seleccionados a firma</button></p>
+  </form>
+  <% } %>
+</div>
+<% } %>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,16 @@
+<% var title = 'Iniciar sesión · INCOM Documentos'; var ocultarNav = true; %>
+<%- include('partials/header', { title, ocultarNav }) %>
+
+<div class="login-box card">
+  <h1>INCOM · Documentos</h1>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="post" action="/login">
+    <label>Correo</label>
+    <input type="email" name="email" required autofocus>
+    <label>Contraseña</label>
+    <input type="password" name="password" required>
+    <p style="margin-top:16px"><button class="btn" type="submit" style="width:100%">Entrar</button></p>
+  </form>
+</div>
+
+<%- include('partials/footer') %>

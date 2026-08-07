@@ -1,0 +1,32 @@
+<% var title = 'Firmar documento · INCOM'; %>
+<%- include('partials/header', { title, ocultarNav: true }) %>
+
+<div class="card" style="max-width:760px; margin:20px auto">
+  <h1>INCOM · <%= documento.plantilla_nombre %></h1>
+
+  <% if (yaFirmado) { %>
+    <p class="ok">Este documento ya fue firmado el <%= new Date(documento.firmado_en).toLocaleString('es-MX') %>. No se necesita ninguna acción más.</p>
+    <iframe class="pdf-preview" src="/firmar/<%= documento.token_firma %>/pdf"></iframe>
+  <% } else { %>
+    <p>Revisa el documento con tus datos. Si algo está mal, no lo firmes y contacta al instituto. Si todo está correcto, dibuja tu firma abajo: puedes borrarla y volver a intentar las veces que quieras antes de confirmarla.</p>
+    <iframe class="pdf-preview" src="/firmar/<%= documento.token_firma %>/pdf"></iframe>
+
+    <h2 style="margin-top:20px">Tu firma</h2>
+    <canvas id="firma-canvas" class="firma-canvas"></canvas>
+    <p>
+      <button type="button" class="btn secundario" id="btn-borrar">Borrar y reintentar</button>
+      <button type="button" class="btn" id="btn-firmar">Confirmar firma</button>
+    </p>
+    <p id="firma-mensaje" class="error"></p>
+  <% } %>
+</div>
+
+<% if (!yaFirmado) { %>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+<script>
+  window.TOKEN_FIRMA = <%- JSON.stringify(documento.token_firma) %>;
+</script>
+<script src="/js/firmar-cliente.js"></script>
+<% } %>
+
+<%- include('partials/footer') %>

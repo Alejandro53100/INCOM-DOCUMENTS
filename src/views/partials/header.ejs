@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' ? title : 'INCOM Documentos' %></title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+<% if (typeof ocultarNav === 'undefined' || !ocultarNav) { %>
+<header class="app-bar">
+  <a class="marca" href="/">INCOM · Documentos</a>
+  <nav>
+    <a href="/">Alumnos</a>
+    <a href="/plantillas">Plantillas</a>
+    <% if (typeof adminEmail !== 'undefined' && adminEmail) { %>
+      <a href="#" onclick="document.getElementById('form-logout').submit();return false;"><%= adminEmail %> · Salir</a>
+      <form id="form-logout" method="post" action="/logout" style="display:none"></form>
+    <% } %>
+  </nav>
+</header>
+<% } %>
+<main>

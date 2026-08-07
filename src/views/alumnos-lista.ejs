@@ -1,0 +1,42 @@
+<% var title = 'Alumnos · INCOM Documentos'; %>
+<%- include('partials/header', { title, adminEmail }) %>
+
+<div class="card">
+  <h1>Alumnos</h1>
+  <form method="get" action="/" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
+    <div style="flex:1; min-width:220px">
+      <label>Buscar por nombre, correo o matrícula</label>
+      <input type="text" name="q" value="<%= busqueda %>">
+    </div>
+    <button class="btn secundario" type="submit">Buscar</button>
+    <a class="btn secundario" href="/">Limpiar</a>
+    <a class="btn secundario" href="/alumnos/plantilla-excel">Descargar plantilla Excel</a>
+    <a class="btn secundario" href="/alumnos/nuevo">+ Alumno manual</a>
+    <a class="btn" href="/alumnos/importar">Importar Excel</a>
+  </form>
+</div>
+
+<div class="card">
+  <% if (alumnos.length === 0) { %>
+    <p>No hay alumnos todavía. Importa un Excel o da de alta uno manualmente.</p>
+  <% } else { %>
+  <table>
+    <thead>
+      <tr><th>Nombre</th><th>Correo</th><th>Matrícula</th><th>Grado</th><th>Documentos</th></tr>
+    </thead>
+    <tbody>
+      <% alumnos.forEach(a => { %>
+      <tr onclick="location.href='/alumnos/<%= a.id %>'" style="cursor:pointer">
+        <td><%= [a.apellido_paterno, a.apellido_materno, a.nombre].filter(Boolean).join(' ') || '(sin nombre)' %></td>
+        <td><%= a.email %></td>
+        <td><%= a.matricula || '—' %></td>
+        <td><%= a.grado || '—' %></td>
+        <td><%= a.firmados %> / <%= a.total_documentos %> firmados</td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

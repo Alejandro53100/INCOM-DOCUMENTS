@@ -1,0 +1,60 @@
+<% var title = 'Calibrar ' + plantilla.nombre + ' · INCOM Documentos'; %>
+<%- include('partials/header', { title, adminEmail }) %>
+
+<div class="card">
+  <h1>Calibrar: <%= plantilla.nombre %></h1>
+  <p>
+    1) Elige un campo de la lista. 2) Haz clic en el PDF sobre la línea donde debe imprimirse ese dato. Repite con cada campo que use este documento (no es obligatorio usarlos todos).
+    Para la firma, activa "Marcar zona de firma" y dibuja un rectángulo arrastrando sobre el PDF (para el Consentimiento de Reglamento, marca las dos zonas, una por cada copia).
+  </p>
+  <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap">
+    <button type="button" class="btn secundario" id="btn-pagina-prev">‹ Página anterior</button>
+    <span id="indicador-pagina">Página 1</span>
+    <button type="button" class="btn secundario" id="btn-pagina-next">Página siguiente ›</button>
+    <button type="button" class="btn secundario" id="btn-modo-firma">Marcar zona de firma</button>
+    <button type="button" class="btn" id="btn-guardar">Guardar calibración</button>
+    <span id="estado-guardado"></span>
+  </div>
+
+  <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap">
+    <div style="position:relative; border:1px solid var(--borde)">
+      <canvas id="pdf-canvas"></canvas>
+      <div id="overlay" style="position:absolute; left:0; top:0; right:0; bottom:0;"></div>
+    </div>
+
+    <div style="min-width:260px; max-width:320px">
+      <h2>Campos</h2>
+      <% var gruposCal = {}; CAMPOS.forEach(c => { (gruposCal[c.grupo] = gruposCal[c.grupo] || []).push(c); }); %>
+      <div id="lista-campos" style="max-height:400px; overflow:auto; border:1px solid var(--borde); border-radius:6px">
+        <% Object.keys(gruposCal).forEach(g => { %>
+          <div style="padding:4px 10px; font-size:.75rem; font-weight:700; background:#eef1f4; color:#556"><%= g %></div>
+          <% gruposCal[g].forEach(c => { %>
+            <div class="fila-campo" data-clave="<%= c.clave %>" data-etiqueta="<%= c.etiqueta %>"
+                 style="padding:6px 10px; cursor:pointer; font-size:.85rem; border-bottom:1px solid #eee">
+              <%= c.etiqueta %>
+            </div>
+          <% }) %>
+        <% }) %>
+      </div>
+
+      <h2>Campos ya ubicados</h2>
+      <table id="tabla-ubicados">
+        <thead><tr><th>Campo</th><th>Pág</th><th>Tam.</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  window.PLANTILLA = {
+    id: <%- JSON.stringify(plantilla.id) %>,
+    pdfUrl: <%- JSON.stringify('/plantillas-pdf/' + plantilla.archivo_pdf) %>,
+    mapaCampos: <%- JSON.stringify(plantilla.mapa_campos || []) %>,
+    zonasFirma: <%- JSON.stringify(plantilla.zonas_firma || []) %>,
+  };
+</script>
+<script src="/js/calibrar-cliente.js"></script>
+
+<%- include('partials/footer') %>

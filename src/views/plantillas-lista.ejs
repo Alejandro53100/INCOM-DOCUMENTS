@@ -1,0 +1,26 @@
+<% var title = 'Plantillas · INCOM Documentos'; %>
+<%- include('partials/header', { title, adminEmail }) %>
+
+<div class="card">
+  <h1>Plantillas de documentos</h1>
+  <p>Antes de generar documentos para los alumnos, cada plantilla debe calibrarse una sola vez: se marca en el PDF dónde va cada dato y dónde se estampa la firma.</p>
+  <table>
+    <thead><tr><th>Documento</th><th>Campos mapeados</th><th>Zona(s) de firma</th><th></th></tr></thead>
+    <tbody>
+      <% plantillas.forEach(p => { %>
+        <tr>
+          <td><%= p.nombre %></td>
+          <td><%= (p.mapa_campos || []).length %></td>
+          <td><%= (p.zonas_firma || []).length %></td>
+          <td>
+            <a class="btn secundario" href="/plantillas/<%= p.id %>/calibrar">
+              <%= (p.mapa_campos || []).length ? 'Editar calibración' : 'Calibrar' %>
+            </a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/footer') %>

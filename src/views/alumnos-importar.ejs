@@ -1,0 +1,28 @@
+<% var title = 'Importar alumnos · INCOM Documentos'; %>
+<%- include('partials/header', { title, adminEmail }) %>
+
+<div class="card">
+  <h1>Importar alumnos desde Excel</h1>
+  <p>Usa la <a href="/alumnos/plantilla-excel">plantilla de Excel</a> para llenar los datos de los alumnos y súbela aquí. Si el correo de un alumno ya existe, se actualizan sus datos en vez de duplicarlo.</p>
+
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+  <% if (resultado) { %>
+    <p class="ok"><%= resultado.creados %> alumno(s) nuevos, <%= resultado.actualizados %> actualizado(s) de <%= resultado.total %> fila(s) leídas.</p>
+    <% if (resultado.errores.length) { %>
+      <p class="aviso">Filas omitidas:</p>
+      <ul>
+        <% resultado.errores.forEach(e => { %><li class="aviso"><%= e %></li><% }) %>
+      </ul>
+    <% } %>
+    <p><a class="btn" href="/">Ver alumnos</a></p>
+  <% } %>
+
+  <form method="post" action="/alumnos/importar" enctype="multipart/form-data" style="margin-top:16px">
+    <label>Archivo Excel (.xlsx)</label>
+    <input type="file" name="excel" accept=".xlsx" required>
+    <p style="margin-top:16px"><button class="btn" type="submit">Importar</button></p>
+  </form>
+</div>
+
+<%- include('partials/footer') %>
