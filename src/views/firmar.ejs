@@ -5,7 +5,7 @@
   <h1>INCOM · <%= documento.plantilla_nombre %></h1>
 
   <% if (yaFirmado) { %>
-    <p class="ok">Este documento ya fue firmado el <%= new Date(documento.firmado_en).toLocaleString('es-MX') %>. No se necesita ninguna acción más.</p>
+    <p class="ok">¡Gracias por firmar! Registramos tu firma el <%= new Date(documento.firmado_en).toLocaleString('es-MX') %>. El instituto ya puede ver el documento firmado; no necesitas hacer nada más.</p>
     <iframe class="pdf-preview" src="/firmar/<%= documento.token_firma %>/pdf"></iframe>
   <% } else { %>
     <p>Revisa el documento con tus datos. Si algo está mal, no lo firmes y contacta al instituto. Si todo está correcto, dibuja tu firma abajo: puedes borrarla y volver a intentar las veces que quieras antes de confirmarla.</p>

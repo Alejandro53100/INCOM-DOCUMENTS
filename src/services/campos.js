@@ -74,6 +74,7 @@ const CAMPOS_VIRTUALES = [
   { clave: 'fecha_dia', etiqueta: 'Fecha de hoy: día', grupo: 'Calculados' },
   { clave: 'fecha_mes', etiqueta: 'Fecha de hoy: mes', grupo: 'Calculados' },
   { clave: 'fecha_anio', etiqueta: 'Fecha de hoy: año (2 dígitos)', grupo: 'Calculados' },
+  { clave: 'fecha_anio_1_digito', etiqueta: 'Fecha de hoy: año (solo el último dígito, ej. "6" en 2026)', grupo: 'Calculados' },
   { clave: 'fecha_larga', etiqueta: 'Fecha de hoy (larga, ej. 23 de julio de 2026)', grupo: 'Calculados' },
 ];
 

@@ -1,44 +1,108 @@
 <% var title = (alumno ? 'Editar alumno' : 'Nuevo alumno') + ' · INCOM Documentos'; %>
 <%- include('partials/header', { title, adminEmail }) %>
 
-<% var grupos = {}; CAMPOS.forEach(c => { (grupos[c.grupo] = grupos[c.grupo] || []).push(c); }); %>
+
+<%
+  var grupos = {};
+  CAMPOS.forEach(c => { (grupos[c.grupo] = grupos[c.grupo] || []).push(c); });
+
+  function camposLlenos(campos) {
+    return campos.filter(c => alumno && alumno[c.clave]).length;
+  }
+  function boolsLlenos(bools) {
+    return bools.filter(b => alumno && alumno[b.clave]).length;
+  }
+  var deps = alumno && alumno.dependientes ? alumno.dependientes : [];
+  var depsConDatos = deps.filter(d => d && (d.nombre || d.edad || d.escolaridad)).length;
+
+  var docTexto = grupos['Documentos entregados'] || [];
+  var docConteoLleno = camposLlenos(docTexto) + boolsLlenos(CAMPOS_BOOLEANOS);
+  var docConteoTotal = docTexto.length + CAMPOS_BOOLEANOS.length;
+
+  var becaConteoLleno = camposLlenos(grupos['Beca'] || []) + depsConDatos;
+  var becaConteoTotal = (grupos['Beca'] || []).length + 4;
+
+  function campoInput(c) { %>
+    <div>
+      <label><%= c.etiqueta %></label>
+      <input type="text" name="<%= c.clave %>" value="<%= alumno ? (alumno[c.clave] || '') : '' %>">
+    </div>
+  <% }
+%>
 
 <div class="card">
   <h1><%= alumno ? 'Editar alumno' : 'Nuevo alumno' %></h1>
   <% if (guardado) { %><p class="ok">Datos guardados.</p><% } %>
 
   <form method="post" action="<%= alumno ? ('/alumnos/' + alumno.id) : '/alumnos/nuevo' %>">
-    <% Object.keys(grupos).forEach(nombreGrupo => { %>
-      <h2><%= nombreGrupo %></h2>
-      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0 16px">
-        <% grupos[nombreGrupo].forEach(c => { %>
-          <div>
-            <label><%= c.etiqueta %></label>
-            <input type="text" name="<%= c.clave %>" value="<%= alumno ? (alumno[c.clave] || '') : '' %>">
+    <% ['Identidad', 'Domicilio', 'Escolar', 'Laboral'].forEach((nombreGrupo, idx) => {
+         var campos = grupos[nombreGrupo] || [];
+         var lleno = camposLlenos(campos);
+    %>
+      <details class="acordeon" <%= idx === 0 ? 'open' : '' %>>
+        <summary>
+          <span class="acordeon-titulo">
+            <svg class="chevron" width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M5 2 L12 8 L5 14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <%= nombreGrupo %>
+          </span>
+          <span class="acordeon-conteo<%= lleno === campos.length ? ' completo' : '' %>"><%= lleno %> / <%= campos.length %> completados</span>
+        </summary>
+        <div class="acordeon-cuerpo">
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0 16px">
+            <% campos.forEach(c => { campoInput(c); }) %>
           </div>
-        <% }) %>
-      </div>
+        </div>
+      </details>
     <% }) %>
 
-    <h2>Documentos entregados</h2>
-    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 6px">
-      <% CAMPOS_BOOLEANOS.forEach(b => { %>
-        <label style="display:flex; align-items:center; gap:8px; font-size:.9rem; color:#1c2733">
-          <input type="checkbox" name="<%= b.clave %>" style="width:auto" <%= alumno && alumno[b.clave] ? 'checked' : '' %>>
-          <%= b.etiqueta %>
-        </label>
-      <% }) %>
-    </div>
+    <details class="acordeon">
+      <summary>
+        <span class="acordeon-titulo">
+          <svg class="chevron" width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M5 2 L12 8 L5 14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Beca
+        </span>
+        <span class="acordeon-conteo<%= becaConteoLleno === becaConteoTotal ? ' completo' : '' %>"><%= becaConteoLleno %> / <%= becaConteoTotal %> completados</span>
+      </summary>
+      <div class="acordeon-cuerpo">
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0 16px">
+          <% (grupos['Beca'] || []).forEach(c => { campoInput(c); }) %>
+        </div>
 
-    <h2>Dependientes económicos (solo para Solicitud de Beca)</h2>
-    <% var deps = alumno && alumno.dependientes ? alumno.dependientes : []; %>
-    <% for (var i = 1; i <= 4; i++) { var d = deps[i-1] || {}; %>
-      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 16px">
-        <div><label>Dependiente <%= i %>: Nombre</label><input type="text" name="dependiente<%= i %>_nombre" value="<%= d.nombre || '' %>"></div>
-        <div><label>Edad</label><input type="text" name="dependiente<%= i %>_edad" value="<%= d.edad || '' %>"></div>
-        <div><label>Escolaridad</label><input type="text" name="dependiente<%= i %>_escolaridad" value="<%= d.escolaridad || '' %>"></div>
+        <p class="acordeon-subtitulo">Dependientes económicos (solo para Solicitud de Beca)</p>
+        <% for (var i = 1; i <= 4; i++) { var d = deps[i-1] || {}; %>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap: 0 16px">
+            <div><label>Dependiente <%= i %>: Nombre</label><input type="text" name="dependiente<%= i %>_nombre" value="<%= d.nombre || '' %>"></div>
+            <div><label>Edad</label><input type="text" name="dependiente<%= i %>_edad" value="<%= d.edad || '' %>"></div>
+            <div><label>Escolaridad</label><input type="text" name="dependiente<%= i %>_escolaridad" value="<%= d.escolaridad || '' %>"></div>
+          </div>
+        <% } %>
       </div>
-    <% } %>
+    </details>
+
+    <details class="acordeon">
+      <summary>
+        <span class="acordeon-titulo">
+          <svg class="chevron" width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M5 2 L12 8 L5 14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Documentos entregados
+        </span>
+        <span class="acordeon-conteo<%= docConteoLleno === docConteoTotal ? ' completo' : '' %>"><%= docConteoLleno %> / <%= docConteoTotal %> completados</span>
+      </summary>
+      <div class="acordeon-cuerpo">
+        <% if (docTexto.length) { %>
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0 16px">
+          <% docTexto.forEach(c => { campoInput(c); }) %>
+        </div>
+        <% } %>
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 6px; margin-top: 16px">
+          <% CAMPOS_BOOLEANOS.forEach(b => { %>
+            <label style="display:flex; align-items:center; gap:8px; font-size:.9rem; color:#1c2733">
+              <input type="checkbox" name="<%= b.clave %>" style="width:auto" <%= alumno && alumno[b.clave] ? 'checked' : '' %>>
+              <%= b.etiqueta %>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+    </details>
 
     <p style="margin-top:20px"><button class="btn" type="submit">Guardar</button></p>
   </form>
@@ -65,7 +129,8 @@
 
 <div class="card">
   <h2>Documentos de este alumno</h2>
-  <% if (avisoEnviado) { %><p class="ok">Documento(s) enviados por correo al alumno.</p><% } %>
+  <% if (avisoEnviado) { %><p class="ok">Se envió 1 correo al alumno con <%= avisoEnviado %> documento<%= avisoEnviado === 1 ? '' : 's' %> adjunto<%= avisoEnviado === 1 ? '' : 's' %> y su(s) enlace(s) de firma.</p><% } %>
+  <% if (avisoFallidos) { %><p class="error">No se pudo enviar el correo con <%= avisoFallidos %> documento<%= avisoFallidos === 1 ? '' : 's' %>. Intenta de nuevo.</p><% } %>
   <% if (avisoSinCorreo) { %><p class="error">El alumno no tiene correo registrado. Agrégalo arriba y guarda antes de enviar.</p><% } %>
   <% if (documentos.length === 0) { %>
     <p>Todavía no se ha generado ningún documento.</p>

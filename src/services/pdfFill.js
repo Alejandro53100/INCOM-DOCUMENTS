@@ -42,6 +42,7 @@ function resolverValorCampo(clave, alumno) {
     if (clave === 'fecha_dia') return String(hoy.getDate());
     if (clave === 'fecha_mes') return MESES[hoy.getMonth()];
     if (clave === 'fecha_anio') return String(hoy.getFullYear()).slice(-2);
+    if (clave === 'fecha_anio_1_digito') return String(hoy.getFullYear()).slice(-1);
     if (clave === 'fecha_larga') return `${hoy.getDate()} de ${MESES[hoy.getMonth()]} de ${hoy.getFullYear()}`;
   }
 

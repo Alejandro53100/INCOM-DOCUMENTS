@@ -68,9 +68,7 @@ router.post('/enviar', asyncRoute(async (req, res) => {
   const alumno = alumnoRows[0];
   if (!alumno || !alumno.email) return res.redirect(`/alumnos/${alumnoId}?error=sin_correo`);
 
-  let enviados = 0;
-  let fallidos = 0;
-
+  const pendientes = [];
   for (const documentoId of documentoIds) {
     const { rows } = await pool.query(
       `SELECT d.*, p.nombre AS plantilla_nombre FROM documentos d JOIN plantillas p ON p.id = d.plantilla_id WHERE d.id = $1 AND d.alumno_id = $2`,
@@ -78,33 +76,39 @@ router.post('/enviar', asyncRoute(async (req, res) => {
     );
     const documento = rows[0];
     if (!documento || documento.estatus !== 'borrador') continue;
+    pendientes.push({ documento, token: nanoid(32) });
+  }
 
-    const token = nanoid(32);
-    try {
-      // Se manda el correo antes de marcar el documento como enviado: si el correo falla,
-      // el documento se queda en "borrador" para poder reintentarlo, en vez de quedar
-      // marcado como enviado sin que el alumno haya recibido nada.
-      await enviarCorreoFirma({
-        alumno,
+  if (pendientes.length === 0) return res.redirect(`/alumnos/${alumnoId}`);
+
+  let enviados = 0;
+  try {
+    // Se manda el correo antes de marcar los documentos como enviados: si el correo falla,
+    // todos se quedan en "borrador" para poder reintentar el envío, en vez de quedar
+    // marcados como enviados sin que el alumno haya recibido nada.
+    await enviarCorreoFirma({
+      alumno,
+      documentos: pendientes.map(({ documento, token }) => ({
         nombreDocumento: documento.plantilla_nombre,
         enlace: `${process.env.BASE_URL}/firmar/${token}`,
-      });
-    } catch (err) {
-      console.error(`No se pudo enviar el correo del documento ${documentoId}:`, err.message);
-      fallidos++;
-      continue;
-    }
+        pdfBuffer: documento.pdf_generado,
+      })),
+    });
 
-    await pool.query(
-      "UPDATE documentos SET estatus = 'enviado', token_firma = $1, enviado_en = now() WHERE id = $2",
-      [token, documentoId]
-    );
-    enviados++;
+    for (const { documento, token } of pendientes) {
+      await pool.query(
+        "UPDATE documentos SET estatus = 'enviado', token_firma = $1, enviado_en = now() WHERE id = $2",
+        [token, documento.id]
+      );
+    }
+    enviados = pendientes.length;
+  } catch (err) {
+    console.error(`No se pudo enviar el correo de documentos al alumno ${alumnoId}:`, err.message);
   }
 
   const params = new URLSearchParams();
-  if (enviados) params.set('enviado', '1');
-  if (fallidos) params.set('fallidos', String(fallidos));
+  if (enviados) params.set('enviado', String(enviados));
+  else params.set('fallidos', String(pendientes.length));
   res.redirect(`/alumnos/${alumnoId}?${params.toString()}`);
 }));
 

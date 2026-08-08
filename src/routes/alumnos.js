@@ -139,9 +139,10 @@ router.get('/alumnos/:id', asyncRoute(async (req, res) => {
     CAMPOS_BOOLEANOS,
     columnasDependientes: columnasDependientes(),
     guardado: req.query.guardado === '1',
-    avisoEnviado: req.query.enviado === '1',
+    avisoEnviado: req.query.enviado ? Number(req.query.enviado) : 0,
     avisoOmitidos: req.query.omitidos ? Number(req.query.omitidos) : 0,
     avisoSinCorreo: req.query.error === 'sin_correo',
+    avisoFallidos: req.query.fallidos ? Number(req.query.fallidos) : 0,
   });
 }));
 

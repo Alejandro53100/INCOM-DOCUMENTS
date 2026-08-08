@@ -91,4 +91,46 @@ label { display: block; font-size: .85rem; margin: 10px 0 4px; color: #445; }
 
 .pdf-preview { width: 100%; height: 70vh; border: 1px solid var(--borde); border-radius: 6px; }
 
+.acordeon {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.acordeon + .acordeon { margin-top: 0; }
+.acordeon summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--gris);
+  user-select: none;
+}
+.acordeon summary::-webkit-details-marker { display: none; }
+.acordeon summary:hover { background: #eaeff3; }
+.acordeon summary .acordeon-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--azul-osc);
+  font-size: 1rem;
+}
+.acordeon summary .acordeon-conteo { font-weight: 400; font-size: .8rem; color: #6b7a89; }
+.acordeon summary .acordeon-conteo.completo { color: var(--verde); }
+.acordeon summary .chevron {
+  flex: none;
+  color: var(--azul);
+  transition: transform .18s ease;
+}
+.acordeon[open] > summary .chevron { transform: rotate(90deg); }
+.acordeon[open] > summary { border-bottom: 1px solid var(--borde); }
+.acordeon .acordeon-cuerpo { padding: 18px; }
+.acordeon .acordeon-subtitulo { font-size: .95rem; font-weight: 600; color: var(--azul-osc); margin: 22px 0 4px; }
+.acordeon .acordeon-subtitulo:first-child { margin-top: 0; }
+
 canvas.firma-canvas { border: 1px dashed var(--azul); border-radius: 6px; touch-action: none; width: 100%; max-width: 500px; height: 200px; background: #fff; }

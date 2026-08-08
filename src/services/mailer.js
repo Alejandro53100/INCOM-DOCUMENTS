@@ -11,19 +11,30 @@ function getTransporter() {
   return transporter;
 }
 
-async function enviarCorreoFirma({ alumno, nombreDocumento, enlace }) {
+function nombreArchivo(nombreDocumento) {
+  return `${nombreDocumento.replace(/[\\/:*?"<>|]/g, '')}.pdf`;
+}
+
+// documentos: [{ nombreDocumento, enlace, pdfBuffer }] — uno o varios documentos en un solo correo.
+async function enviarCorreoFirma({ alumno, documentos }) {
   const nombre = [alumno.nombre, alumno.apellido_paterno].filter(Boolean).join(' ');
+  const plural = documentos.length > 1;
+  const listaEnlaces = documentos
+    .map((d) => `<li><strong>${d.nombreDocumento}</strong> — <a href="${d.enlace}">Ver y firmar</a></li>`)
+    .join('');
+
   await getTransporter().sendMail({
     from: `INCOM Documentos <${process.env.GMAIL_USER}>`,
     to: alumno.email,
-    subject: `Firma requerida: ${nombreDocumento}`,
+    subject: plural ? `Firma requerida: ${documentos.length} documentos` : `Firma requerida: ${documentos[0].nombreDocumento}`,
     html: `
       <p>Hola ${nombre || ''},</p>
-      <p>El Instituto de Capacitación Odontológico de Morelos te envía el documento <strong>${nombreDocumento}</strong> para tu firma.</p>
-      <p>Abre el siguiente enlace, revisa el documento y fírmalo. Puedes borrar y volver a intentar tu firma las veces que necesites antes de confirmarla:</p>
-      <p><a href="${enlace}">${enlace}</a></p>
-      <p>Si tú no solicitaste este documento, ignora este correo.</p>
+      <p>El Instituto de Capacitación Odontológico de Morelos te envía ${plural ? 'los siguientes documentos' : 'el siguiente documento'} para tu firma. Los adjuntamos en PDF para que los revises, y puedes firmarlos desde el enlace correspondiente:</p>
+      <ul>${listaEnlaces}</ul>
+      <p>Al abrir un enlace vas a poder ver el documento y dibujar tu firma. Puedes borrar y volver a intentar tu firma las veces que necesites antes de confirmarla.</p>
+      <p>Si tú no solicitaste estos documentos, ignora este correo.</p>
     `,
+    attachments: documentos.map((d) => ({ filename: nombreArchivo(d.nombreDocumento), content: d.pdfBuffer })),
   });
 }
 
