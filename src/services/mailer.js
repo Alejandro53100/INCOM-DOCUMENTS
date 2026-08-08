@@ -5,8 +5,9 @@ function getTransporter() {
   if (!transporter) {
     transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
+      requireTLS: true,
       family: 4, // algunos hosts (ej. Render) tienen IPv6 roto y la conexion se queda colgada sin esto
       connectionTimeout: 15000,
       greetingTimeout: 15000,
