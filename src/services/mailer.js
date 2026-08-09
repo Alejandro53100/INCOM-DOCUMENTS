@@ -3,16 +3,18 @@ const nodemailer = require('nodemailer');
 let transporter = null;
 function getTransporter() {
   if (!transporter) {
+    // Gmail SMTP directo se cuelga sin error en hosts como Render/Railway
+    // (Google bloquea/descarta silenciosamente conexiones desde IPs de nube).
+    // Se usa el relay SMTP de Brevo en su lugar.
     transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+      host: 'smtp-relay.brevo.com',
       port: 587,
       secure: false,
       requireTLS: true,
-      family: 4, // algunos hosts (ej. Render) tienen IPv6 roto y la conexion se queda colgada sin esto
       connectionTimeout: 15000,
       greetingTimeout: 15000,
       socketTimeout: 15000,
-      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+      auth: { user: process.env.BREVO_SMTP_USER, pass: process.env.BREVO_SMTP_KEY },
     });
   }
   return transporter;
@@ -31,7 +33,7 @@ async function enviarCorreoFirma({ alumno, documentos }) {
     .join('');
 
   await getTransporter().sendMail({
-    from: `INCOM Documentos <${process.env.GMAIL_USER}>`,
+    from: `INCOM Documentos <${process.env.MAIL_FROM}>`,
     to: alumno.email,
     subject: plural ? `Firma requerida: ${documentos.length} documentos` : `Firma requerida: ${documentos[0].nombreDocumento}`,
     html: `
@@ -50,7 +52,7 @@ async function notificarDocumentoFirmado({ alumno, nombreDocumento, enlaceAdmin 
   if (!destinatario) return;
   const nombre = [alumno.nombre, alumno.apellido_paterno].filter(Boolean).join(' ');
   await getTransporter().sendMail({
-    from: `INCOM Documentos <${process.env.GMAIL_USER}>`,
+    from: `INCOM Documentos <${process.env.MAIL_FROM}>`,
     to: destinatario,
     subject: `Documento firmado: ${nombreDocumento} — ${nombre}`,
     html: `
