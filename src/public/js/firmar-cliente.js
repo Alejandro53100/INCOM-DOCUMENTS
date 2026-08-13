@@ -13,7 +13,7 @@
     pad.clear();
   }
 
-  const pad = new SignaturePad(canvas);
+  const pad = new SignaturePad(canvas, { penColor: 'rgb(0, 51, 204)' });
   window.addEventListener('resize', ajustarTamano);
   ajustarTamano();
 

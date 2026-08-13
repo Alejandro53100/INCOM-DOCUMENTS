@@ -22,10 +22,23 @@
   var becaConteoLleno = camposLlenos(grupos['Beca'] || []) + depsConDatos;
   var becaConteoTotal = (grupos['Beca'] || []).length + 4;
 
-  function campoInput(c) { %>
+  function campoInput(c) {
+    var valorActual = (alumno && alumno[c.clave]) || c.valorPredeterminado || '';
+  %>
     <div>
       <label><%= c.etiqueta %></label>
-      <input type="text" name="<%= c.clave %>" value="<%= alumno ? (alumno[c.clave] || '') : '' %>">
+      <% if (c.soloLectura) { %>
+        <input type="text" name="<%= c.clave %>" value="<%= valorActual %>" readonly style="background:#eee; color:#555">
+      <% } else if (c.opciones) { %>
+        <select name="<%= c.clave %>">
+          <option value="">-- Selecciona --</option>
+          <% c.opciones.forEach(function(op) { %>
+            <option value="<%= op %>" <%= valorActual === op ? 'selected' : '' %>><%= op %></option>
+          <% }) %>
+        </select>
+      <% } else { %>
+        <input type="text" name="<%= c.clave %>" value="<%= valorActual %>">
+      <% } %>
     </div>
   <% }
 %>

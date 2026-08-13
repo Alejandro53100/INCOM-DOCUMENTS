@@ -142,14 +142,11 @@
     const y = e.clientY - rect.top;
     const pdfX = canvasXaPdf(x);
     const pdfY = canvasYaPdf(y);
-    const existente = campos.find((c) => c.clave === campoArmado.clave);
-    if (existente) {
-      existente.pagina = paginaActual;
-      existente.x = pdfX;
-      existente.y = pdfY;
-    } else {
-      campos.push({ clave: campoArmado.clave, pagina: paginaActual, x: pdfX, y: pdfY, tamano_fuente: 9 });
-    }
+    // Siempre agrega una ubicacion nueva (no reemplaza una existente de la misma clave):
+    // varios documentos (ej. Consentimiento de Reglamento) repiten el mismo campo dos veces
+    // en la misma hoja porque tienen dos copias. Para corregir una ubicacion mal puesta,
+    // bórrala con la ✕ en "Campos ya ubicados" y vuelve a hacer clic.
+    campos.push({ clave: campoArmado.clave, pagina: paginaActual, x: pdfX, y: pdfY, tamano_fuente: 9 });
     redibujarOverlay();
   });
 

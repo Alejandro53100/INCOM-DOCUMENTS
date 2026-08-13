@@ -63,6 +63,17 @@ CREATE TABLE IF NOT EXISTS alumnos (
   actualizado_en TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- La fecha del Dictamen de Beca la decide el periodo de becas, no el dia en que se genera
+-- el PDF, asi que se guarda por alumno en vez de usar la fecha de hoy.
+ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS fecha_dictamen TEXT;
+
+-- Mismo caso para el Consentimiento de Reglamento: la fecha es la del periodo, no la de generacion.
+ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS fecha_reglamento TEXT;
+
+-- El Vo.Bo. del Consentimiento de Reglamento siempre lo firma la misma persona; se deja como
+-- columna (editable via Excel si algun dia cambia) pero bloqueada en el formulario manual.
+ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS visto_bueno TEXT DEFAULT 'ARTURO CERON VAZQUEZ';
+
 CREATE TABLE IF NOT EXISTS plantillas (
   id SERIAL PRIMARY KEY,
   clave TEXT UNIQUE NOT NULL,

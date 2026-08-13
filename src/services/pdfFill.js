@@ -14,6 +14,41 @@ function resolverValorCampo(clave, alumno) {
     return [alumno.apellido_paterno, alumno.apellido_materno, alumno.nombre].filter(Boolean).join(' ');
   }
 
+  // El campo "sexo" se guarda como F/Femenino o M/Masculino (el select de la ficha del
+  // alumno ya solo deja elegir esas dos opciones), pero el formato de beca pide marcar
+  // una casilla F( ) / M( ) en vez de escribir la letra. Por eso se exponen dos campos
+  // calibrables y solo uno de los dos trae la "X".
+  if (clave === 'sexo_f' || clave === 'sexo_m') {
+    const valor = String(alumno.sexo || '').trim().toUpperCase();
+    const esFemenino = valor === 'F' || valor.startsWith('FEM') || valor.startsWith('MUJER');
+    const esMasculino = valor === 'M' || valor.startsWith('MASC') || valor.startsWith('HOMBRE') || valor === 'H';
+    if (clave === 'sexo_f') return esFemenino ? 'X' : '';
+    return esMasculino ? 'X' : '';
+  }
+
+  // Mismo patron que sexo_f/sexo_m: el alumno trae un texto libre (estado_civil,
+  // contrato_laboral, vivienda) y el formato de beca pide marcar una de varias casillas.
+  if (clave === 'estado_civil_soltero' || clave === 'estado_civil_casado') {
+    const valor = String(alumno.estado_civil || '').trim().toUpperCase();
+    if (clave === 'estado_civil_soltero') return valor.startsWith('SOLTER') ? 'X' : '';
+    return valor.startsWith('CASAD') ? 'X' : '';
+  }
+
+  if (clave.startsWith('contrato_laboral_')) {
+    const valor = String(alumno.contrato_laboral || '').trim().toUpperCase();
+    if (clave === 'contrato_laboral_fijo') return valor.startsWith('FIJO') ? 'X' : '';
+    if (clave === 'contrato_laboral_temporal') return valor.startsWith('TEMPORAL') ? 'X' : '';
+    if (clave === 'contrato_laboral_independiente') return valor.startsWith('INDEPENDIENTE') ? 'X' : '';
+    if (clave === 'contrato_laboral_otros') return valor.startsWith('OTRO') ? 'X' : '';
+  }
+
+  if (clave.startsWith('vivienda_')) {
+    const valor = String(alumno.vivienda || '').trim().toUpperCase();
+    if (clave === 'vivienda_propia') return valor.startsWith('PROPIA') ? 'X' : '';
+    if (clave === 'vivienda_rentada') return valor.startsWith('RENTADA') ? 'X' : '';
+    if (clave === 'vivienda_prestada') return valor.startsWith('PRESTADA') ? 'X' : '';
+  }
+
   if (clave === 'grado_numero') {
     const match = String(alumno.grado || '').match(/\d+/);
     return match ? match[0] : (alumno.grado || '');
@@ -35,6 +70,30 @@ function resolverValorCampo(clave, alumno) {
     if (clave === 'fecha_nacimiento_dia') return String(Number(dia));
     if (clave === 'fecha_nacimiento_mes') return MESES[Number(mes) - 1] || mes;
     if (clave === 'fecha_nacimiento_anio') return anio;
+  }
+
+  // Fecha del Dictamen de Beca: la decide el periodo de becas (se captura en la ficha del
+  // alumno / Excel), no es la fecha en que se genera el PDF, por eso no usa "hoy" como fecha_*.
+  if (clave.startsWith('fecha_dictamen_')) {
+    const partes = String(alumno.fecha_dictamen || '').split('-'); // se guarda como AAAA-MM-DD
+    if (partes.length !== 3) return '';
+    const [anio, mes, dia] = partes;
+    if (clave === 'fecha_dictamen_dia') return String(Number(dia));
+    if (clave === 'fecha_dictamen_mes') return MESES[Number(mes) - 1] || mes;
+    if (clave === 'fecha_dictamen_anio') return anio;
+    if (clave === 'fecha_dictamen_anio_1_digito') return anio.slice(-1);
+  }
+
+  // Fecha del Consentimiento de Reglamento: mismo caso que fecha_dictamen_, la decide el
+  // periodo, no el dia de generacion. El año va a 2 digitos porque asi estaba calibrado
+  // el PDF cuando usaba la fecha de hoy (fecha_anio).
+  if (clave.startsWith('fecha_reglamento_')) {
+    const partes = String(alumno.fecha_reglamento || '').split('-'); // se guarda como AAAA-MM-DD
+    if (partes.length !== 3) return '';
+    const [anio, mes, dia] = partes;
+    if (clave === 'fecha_reglamento_dia') return String(Number(dia));
+    if (clave === 'fecha_reglamento_mes') return MESES[Number(mes) - 1] || mes;
+    if (clave === 'fecha_reglamento_anio') return anio.slice(-2);
   }
 
   if (clave.startsWith('fecha_')) {

@@ -24,6 +24,7 @@ const EJEMPLO = {
   ciclo_escolar: '2026-1',
   promedio: '9.2',
   posgrado: 'Especialidad de Ortodoncia',
+  visto_bueno: 'ARTURO CERON VAZQUEZ',
   doc_fotografias_tamano: 'Infantil x4',
   doc_acta_nacimiento: 'Si',
   doc_curp: 'Si',
