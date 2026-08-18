@@ -7,6 +7,9 @@ const { asyncRoute } = require('../middleware/asyncRoute');
 
 const router = express.Router();
 
+// El Dictamen de Beca se genera para el expediente, pero nunca se envía por correo al alumno.
+const CLAVES_SIN_CORREO = ['beca_dictamen'];
+
 router.post('/generar', asyncRoute(async (req, res) => {
   const alumnoId = req.body.alumno_id;
   const plantillaIds = [].concat(req.body.plantilla_ids || []);
@@ -71,11 +74,12 @@ router.post('/enviar', asyncRoute(async (req, res) => {
   const pendientes = [];
   for (const documentoId of documentoIds) {
     const { rows } = await pool.query(
-      `SELECT d.*, p.nombre AS plantilla_nombre FROM documentos d JOIN plantillas p ON p.id = d.plantilla_id WHERE d.id = $1 AND d.alumno_id = $2`,
+      `SELECT d.*, p.nombre AS plantilla_nombre, p.clave AS plantilla_clave FROM documentos d JOIN plantillas p ON p.id = d.plantilla_id WHERE d.id = $1 AND d.alumno_id = $2`,
       [documentoId, alumnoId]
     );
     const documento = rows[0];
     if (!documento || documento.estatus !== 'borrador') continue;
+    if (CLAVES_SIN_CORREO.includes(documento.plantilla_clave)) continue;
     pendientes.push({ documento, token: nanoid(32) });
   }
 

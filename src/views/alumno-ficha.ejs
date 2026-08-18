@@ -156,11 +156,11 @@
         <% documentos.forEach(d => { %>
           <tr>
             <td>
-              <% if (d.estatus === 'borrador') { %>
+              <% if (d.estatus === 'borrador' && d.plantilla_clave !== 'beca_dictamen') { %>
                 <input type="checkbox" name="documento_ids" value="<%= d.id %>" style="width:auto">
               <% } %>
             </td>
-            <td><%= d.plantilla_nombre %></td>
+            <td><%= d.plantilla_nombre %><% if (d.plantilla_clave === 'beca_dictamen') { %> <span class="aviso">(no se envía por correo)</span><% } %></td>
             <td><span class="badge <%= d.estatus %>"><%= d.estatus %></span></td>
             <td>
               <a href="/documentos/<%= d.id %>/pdf?version=<%= d.estatus === 'firmado' ? 'firmado' : 'generado' %>" target="_blank">Ver PDF</a>
