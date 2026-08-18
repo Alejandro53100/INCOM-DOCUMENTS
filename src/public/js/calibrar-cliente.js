@@ -19,6 +19,8 @@
   let campos = mapaCampos.slice();
   let firmas = zonasFirma.slice();
   let arrastre = null;
+  let arrastreCampo = null; // { i, movido }
+  let ignorarClicOverlay = false;
 
   function pdfXaCanvas(x) { return x * SCALE; }
   function pdfYaCanvas(y) { return viewportActual.height - y * SCALE; }
@@ -39,11 +41,15 @@
 
   function redibujarOverlay() {
     overlay.innerHTML = '';
-    campos.filter((c) => c.pagina === paginaActual).forEach((c) => {
+    campos.forEach((c, i) => {
+      if (c.pagina !== paginaActual) return;
       const marca = document.createElement('div');
       marca.textContent = c.clave;
-      marca.style.cssText = `position:absolute; left:${pdfXaCanvas(c.x)}px; top:${pdfYaCanvas(c.y) - 14}px;
-        background:#1d4e89; color:#fff; font-size:10px; padding:1px 4px; border-radius:3px; white-space:nowrap; pointer-events:none;`;
+      marca.className = 'marca-campo';
+      marca.dataset.i = i;
+      marca.style.left = pdfXaCanvas(c.x) + 'px';
+      marca.style.top = (pdfYaCanvas(c.y) - 14) + 'px';
+      marca.addEventListener('mousedown', (e) => iniciarArrastreCampo(i, e));
       overlay.appendChild(marca);
     });
     firmas.filter((f) => f.pagina === paginaActual).forEach((f) => {
@@ -55,7 +61,52 @@
     renderTablaUbicados();
   }
 
+  function iniciarArrastreCampo(i, e) {
+    e.preventDefault();
+    e.stopPropagation();
+    arrastreCampo = { i, movido: false };
+    e.target.classList.add('arrastrando');
+    document.addEventListener('mousemove', moverCampoArrastrado);
+    document.addEventListener('mouseup', soltarCampoArrastrado);
+  }
+
+  function moverCampoArrastrado(e) {
+    if (!arrastreCampo) return;
+    arrastreCampo.movido = true;
+    const rect = overlay.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, viewportActual.width));
+    const y = Math.max(0, Math.min(e.clientY - rect.top, viewportActual.height));
+    const c = campos[arrastreCampo.i];
+    c.x = canvasXaPdf(x);
+    c.y = canvasYaPdf(y);
+    const marca = overlay.querySelector(`.marca-campo[data-i="${arrastreCampo.i}"]`);
+    if (marca) {
+      marca.style.left = pdfXaCanvas(c.x) + 'px';
+      marca.style.top = (pdfYaCanvas(c.y) - 14) + 'px';
+    }
+  }
+
+  function soltarCampoArrastrado() {
+    document.removeEventListener('mousemove', moverCampoArrastrado);
+    document.removeEventListener('mouseup', soltarCampoArrastrado);
+    if (arrastreCampo && arrastreCampo.movido) ignorarClicOverlay = true;
+    arrastreCampo = null;
+    redibujarOverlay();
+  }
+
+  function actualizarBadgesCampos() {
+    const conteo = {};
+    campos.forEach((c) => { conteo[c.clave] = (conteo[c.clave] || 0) + 1; });
+    document.querySelectorAll('.fila-campo').forEach((div) => {
+      const n = conteo[div.dataset.clave] || 0;
+      div.classList.toggle('usado', n > 0);
+      const badge = div.querySelector('.badge-usado');
+      if (badge) badge.textContent = n > 1 ? `✓ ${n}` : '✓';
+    });
+  }
+
   function renderTablaUbicados() {
+    actualizarBadgesCampos();
     tbodyUbicados.innerHTML = '';
     campos.forEach((c, i) => {
       const tr = document.createElement('tr');
@@ -94,18 +145,18 @@
 
   document.querySelectorAll('.fila-campo').forEach((div) => {
     div.addEventListener('click', () => {
-      document.querySelectorAll('.fila-campo').forEach((d) => (d.style.background = ''));
+      document.querySelectorAll('.fila-campo').forEach((d) => d.classList.remove('armado'));
       campoArmado = { clave: div.dataset.clave, etiqueta: div.dataset.etiqueta };
       modoFirma = false;
       document.getElementById('btn-modo-firma').textContent = 'Marcar zona de firma';
-      div.style.background = '#dbe7f5';
+      div.classList.add('armado');
     });
   });
 
   document.getElementById('btn-modo-firma').addEventListener('click', (e) => {
     modoFirma = !modoFirma;
     campoArmado = null;
-    document.querySelectorAll('.fila-campo').forEach((d) => (d.style.background = ''));
+    document.querySelectorAll('.fila-campo').forEach((d) => d.classList.remove('armado'));
     e.target.textContent = modoFirma ? 'Cancelar zona de firma' : 'Marcar zona de firma';
   });
 
@@ -136,6 +187,7 @@
   });
 
   overlay.addEventListener('click', (e) => {
+    if (ignorarClicOverlay) { ignorarClicOverlay = false; return; }
     if (modoFirma || !campoArmado) return;
     const rect = overlay.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -144,8 +196,8 @@
     const pdfY = canvasYaPdf(y);
     // Siempre agrega una ubicacion nueva (no reemplaza una existente de la misma clave):
     // varios documentos (ej. Consentimiento de Reglamento) repiten el mismo campo dos veces
-    // en la misma hoja porque tienen dos copias. Para corregir una ubicacion mal puesta,
-    // bórrala con la ✕ en "Campos ya ubicados" y vuelve a hacer clic.
+    // en la misma hoja porque tienen dos copias. Para ajustar una ubicacion, arrastra su
+    // etiqueta en el PDF; para quitarla, usa la ✕ en "Campos mapeados".
     campos.push({ clave: campoArmado.clave, pagina: paginaActual, x: pdfX, y: pdfY, tamano_fuente: 9 });
     redibujarOverlay();
   });

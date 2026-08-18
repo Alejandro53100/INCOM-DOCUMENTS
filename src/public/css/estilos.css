@@ -134,3 +134,28 @@ label { display: block; font-size: .85rem; margin: 10px 0 4px; color: #445; }
 .acordeon .acordeon-subtitulo:first-child { margin-top: 0; }
 
 canvas.firma-canvas { border: 1px dashed var(--azul); border-radius: 6px; touch-action: none; width: 100%; max-width: 500px; height: 200px; background: #fff; }
+
+/* Calibración de plantillas */
+.calibrar-columnas { display: flex; gap: 18px; flex: 1; min-width: 480px; }
+.calibrar-columna { flex: 1; min-width: 220px; }
+.calibrar-columna h2 { font-size: 1rem; margin: 0 0 4px; }
+.calibrar-ayuda { font-size: .78rem; color: #6b7a89; margin: 0 0 8px; }
+.lista-campos { max-height: 460px; overflow: auto; border: 1px solid var(--borde); border-radius: 6px; }
+.fila-campo {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 10px; cursor: pointer; font-size: .85rem; border-bottom: 1px solid #eee;
+}
+.fila-campo:hover { background: #f4f7fa; }
+.fila-campo.armado { background: #dbe7f5; }
+.fila-campo .badge-usado {
+  display: none; flex: none; background: var(--verde); color: #fff; border-radius: 10px;
+  padding: 0 7px; font-size: .72rem; font-weight: 700; line-height: 1.5;
+}
+.fila-campo.usado .badge-usado { display: inline-block; }
+#tabla-ubicados td, #tabla-ubicados th { padding: 6px 8px; font-size: .82rem; }
+.marca-campo {
+  position: absolute; background: var(--azul); color: #fff; font-size: 10px; padding: 2px 5px;
+  border-radius: 3px; white-space: nowrap; cursor: grab; user-select: none; touch-action: none;
+}
+.marca-campo:hover { background: var(--azul-osc); }
+.marca-campo.arrastrando { cursor: grabbing; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--azul); z-index: 2; }
