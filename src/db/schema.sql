@@ -74,10 +74,6 @@ ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS fecha_reglamento TEXT;
 -- columna (editable via Excel si algun dia cambia) pero bloqueada en el formulario manual.
 ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS visto_bueno TEXT DEFAULT 'ARTURO CERON VAZQUEZ';
 
--- Fecha en que el alumno se inscribio (primer ingreso) o se reinscribio (ciclos posteriores).
-ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS fecha_inscripcion TEXT;
-ALTER TABLE alumnos ADD COLUMN IF NOT EXISTS fecha_reinscripcion TEXT;
-
 CREATE TABLE IF NOT EXISTS plantillas (
   id SERIAL PRIMARY KEY,
   clave TEXT UNIQUE NOT NULL,
