@@ -25,6 +25,8 @@ const CAMPOS = [
   { clave: 'grado', etiqueta: 'Grado (ej. 1er semestre)', grupo: 'Escolar' },
   { clave: 'grupo', etiqueta: 'Grupo', grupo: 'Escolar' },
   { clave: 'ciclo_escolar', etiqueta: 'Ciclo Escolar', grupo: 'Escolar' },
+  { clave: 'fecha_inscripcion', etiqueta: 'Fecha de Inscripción (AAAA-MM-DD)', grupo: 'Escolar' },
+  { clave: 'fecha_reinscripcion', etiqueta: 'Fecha de Reinscripción (AAAA-MM-DD)', grupo: 'Escolar' },
   { clave: 'promedio', etiqueta: 'Promedio', grupo: 'Escolar' },
   { clave: 'posgrado', etiqueta: 'Posgrado / Especialidad', grupo: 'Escolar' },
   { clave: 'fecha_reglamento', etiqueta: 'Fecha del Consentimiento de Reglamento (AAAA-MM-DD)', grupo: 'Escolar' },
